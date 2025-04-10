@@ -95,7 +95,7 @@ require (
 	google.golang.org/protobuf v1.36.5
 )
 
-replace github.com/ipfs/boxo v0.29.2-0.20250409154342-bbaf2e146dfb => github.com/Mo-RIZK/boxo v0.0.0-20250410162101-bfdb69cf4460
+replace github.com/ipfs/boxo v0.29.2-0.20250409154342-bbaf2e146dfb => github.com/Mo-RIZK/boxo v0.0.0-20250410170819-1526f0000cb4
 
 require (
 	github.com/AndreasBriese/bbloom v0.0.0-20190825152654-46b345b51c96 // indirect
