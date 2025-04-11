@@ -27,6 +27,7 @@ import (
 	"github.com/ipfs/kubo/tracing"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
+	"os"
 )
 
 type UnixfsAPI CoreAPI
@@ -207,6 +208,7 @@ func (api *UnixfsAPI) GetEC(ctx context.Context, p path.Path, mechanism string) 
 	if err != nil {
 		return nil, err
 	}
+	fmt.Fprintf(os.Stdout, "WWWEEEEEEEEEEE AREEEEEEEEEEE in GETECCCCCCCC \n")
 	return unixfile.NewUnixfsFileAlt(ctx, ses.dag, nd, mechanism)
 }
 
