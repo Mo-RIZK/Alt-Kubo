@@ -28,6 +28,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"os"
+	"time"
 )
 
 type UnixfsAPI CoreAPI
@@ -199,17 +200,20 @@ func (api *UnixfsAPI) Get(ctx context.Context, p path.Path) (files.Node, error) 
 	return unixfile.NewUnixfsFile(ctx, ses.dag, nd)
 }
 
-func (api *UnixfsAPI) GetEC(ctx context.Context, p path.Path, mechanism string) (files.Node, error) {
+func (api *UnixfsAPI) GetEC(ctx context.Context, p path.Path, or int, par int, chunksize uint64, mechanism string) (files.Node, error) {
 	ctx, span := tracing.Span(ctx, "CoreAPI.UnixfsAPI", "Get", trace.WithAttributes(attribute.String("path", p.String())))
 	defer span.End()
+	st := time.Now()
 	ses := api.core().getSession(ctx)
 
 	nd, err := ses.ResolveNode(ctx, p)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Fprintf(os.Stdout, "WWWEEEEEEEEEEE AREEEEEEEEEEE in GETECCCCCCCC \n")
-	return unixfile.NewUnixfsFileAlt(ctx, ses.dag, nd, mechanism)
+	et := time.Now()
+	duration1 := et.Sub(st)
+	fmt.Fprintf(os.Stdout, "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB %s\n", duration1)
+	return unixfile.NewUnixfsFileAlt(ctx, ses.dag, nd, or, par, chunksize, mechanism)
 }
 
 // Ls returns the contents of an IPFS or IPNS object(s) at path p, with the format:

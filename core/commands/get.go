@@ -31,6 +31,7 @@ const (
 	compressionLevelOptionName = "compression-level"
 	original                   = "or"
 	parity                     = "par"
+	chunksize                  = "chunk-size"
 	mechanism                  = "mechanism"
 )
 
@@ -59,6 +60,9 @@ may also specify the level of compression by specifying '-l=<1-9>'.
 		cmds.BoolOption(compressOptionName, "C", "Compress the output with GZIP compression."),
 		cmds.IntOption(compressionLevelOptionName, "l", "The level of compression (1-9)."),
 		cmds.BoolOption(progressOptionName, "p", "Stream progress data.").WithDefault(true),
+		cmds.IntOption(original, "org", "Original in case of erasure coding"),
+		cmds.IntOption(parity, "pr", "Parity in case of erasure coding"),
+		cmds.IntOption(chunksize, "s", "size of the chunk setted to erasure coding"),
 		cmds.StringOption(mechanism, "m", "How do we retrieve files when using Erasure Coding .. There are 2 mechanisms : exactN or allN .... For the default replication we use Rep"),
 	},
 	PreRun: func(req *cmds.Request, env cmds.Environment) error {
@@ -82,24 +86,39 @@ may also specify the level of compression by specifying '-l=<1-9>'.
 			return err
 		}
 
+		var cs uint64
 		var mec string
-		mechanism, ok := req.Options[mechanism].(string)
+		org, ok := req.Options[original].(int)
 		if !ok {
-			return errors.New("mechanism must be set")
+			org = 0
 		}
-		mec = mechanism
+		pr, ok := req.Options[parity].(int)
+		if !ok {
+			pr = 0
+		}
+		if org != 0 {
+			css, ok := req.Options[chunksize].(int)
+			if !ok {
+				return errors.New("chunk size must be setted in erasure coding")
+			}
+			mechanism, okk := req.Options[mechanism].(string)
+			if !okk {
+				return errors.New("mechanism must be setted in erasure coding")
+			}
+			cs = uint64(css)
+			mec = mechanism
+		}
 
 		var file files.Node
 		var size int64
-		if mec == "Rep" {
+		if org == 0 {
 			file, err = api.Unixfs().Get(ctx, p)
 		} else {
-			file, err = api.Unixfs().GetEC(ctx, p, mec)
+			file, err = api.Unixfs().GetEC(ctx, p, org, pr, cs, mec)
 			if err != nil {
 				return err
 			}
 		}
-
 		size, err = file.Size()
 		if err != nil {
 			return err
@@ -108,6 +127,7 @@ may also specify the level of compression by specifying '-l=<1-9>'.
 		res.SetLength(uint64(size))
 
 		archive, _ := req.Options[archiveOptionName].(bool)
+
 		reader, err := fileArchive(file, p.String(), archive, cmplvl)
 		if err != nil {
 			return err
