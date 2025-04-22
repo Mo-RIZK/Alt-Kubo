@@ -22,6 +22,7 @@ import (
 type PinAPI CoreAPI
 
 func (api *PinAPI) Add(ctx context.Context, p path.Path, opts ...caopts.PinAddOption) error {
+
 	ctx, span := tracing.Span(ctx, "CoreAPI.PinAPI", "Add", trace.WithAttributes(attribute.String("path", p.String())))
 	defer span.End()
 
@@ -38,11 +39,12 @@ func (api *PinAPI) Add(ctx context.Context, p path.Path, opts ...caopts.PinAddOp
 	span.SetAttributes(attribute.Bool("recursive", settings.Recursive))
 
 	defer api.blockstore.PinLock(ctx).Unlock(ctx)
-
+	fmt.Fprintf(os.Stdout, "Dater start %s : %s \n", dagNode.Cid().String(), time.Now().Format("2006-01-02 15:04:05.000"))
 	err = api.pinning.Pin(ctx, dagNode, settings.Recursive, settings.Name)
 	if err != nil {
 		return fmt.Errorf("pin: %s", err)
 	}
+	fmt.Fprintf(os.Stdout, "Dater end %s : %s \n", dagNode.Cid().String(), time.Now().Format("2006-01-02 15:04:05.000"))
 
 	if err := api.provider.Provide(ctx, dagNode.Cid(), true); err != nil {
 		return err
