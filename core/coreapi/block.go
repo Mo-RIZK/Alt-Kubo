@@ -5,6 +5,9 @@ import (
 	"context"
 	"errors"
 	"io"
+	"os"
+	"time"
+	"fmt"
 
 	"github.com/ipfs/boxo/path"
 	pin "github.com/ipfs/boxo/pinning/pinner"
@@ -30,26 +33,31 @@ func (api *BlockAPI) Put(ctx context.Context, src io.Reader, opts ...caopts.Bloc
 	ctx, span := tracing.Span(ctx, "CoreAPI.BlockAPI", "Put")
 	defer span.End()
 
+	time1 := time.Now()
 	settings, err := caopts.BlockPutOptions(opts...)
 	if err != nil {
 		return nil, err
 	}
-
+	time2 := time.Now()
+	fmt.Fprintf(os.Stdout, "PUTTTTT Settings : %s \n", time2.Sub(time1).String())
 	data, err := io.ReadAll(src)
 	if err != nil {
 		return nil, err
 	}
-
+	time3 := time.Now()
+	fmt.Fprintf(os.Stdout, "PUTTTTT READDD : %s \n", time3.Sub(time2).String())
 	bcid, err := settings.CidPrefix.Sum(data)
 	if err != nil {
 		return nil, err
 	}
-
+	time4 := time.Now()
+	fmt.Fprintf(os.Stdout, "PUTTTTT HASHHHHHH : %s \n", time4.Sub(time3).String())
 	b, err := blocks.NewBlockWithCid(data, bcid)
 	if err != nil {
 		return nil, err
 	}
-
+	time5 := time.Now()
+	fmt.Fprintf(os.Stdout, "PUTTTTT CREATE BLOCKKK : %s \n", time5.Sub(time4).String())
 	if settings.Pin {
 		defer api.blockstore.PinLock(ctx).Unlock(ctx)
 	}
@@ -58,7 +66,8 @@ func (api *BlockAPI) Put(ctx context.Context, src io.Reader, opts ...caopts.Bloc
 	if err != nil {
 		return nil, err
 	}
-
+	time6 := time.Now()
+	fmt.Fprintf(os.Stdout, "PUTTTTT STOREEEE : %s \n", time6.Sub(time5).String())
 	if settings.Pin {
 		if err = api.pinning.PinWithMode(ctx, b.Cid(), pin.Recursive, ""); err != nil {
 			return nil, err
